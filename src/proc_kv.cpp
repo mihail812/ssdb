@@ -227,8 +227,8 @@ int proc_scan_filter(NetworkServer *net, Link *link, const Request &req, Respons
 	CHECK_NUM_PARAMS(6);
 
 	uint64_t limit = req[3].Uint64();
-	uint64_t load_in_cache = req[3].Uint64();
-	std::string filter = req[4].String();
+	uint64_t load_in_cache = req[4].Uint64();
+	std::string filter = req[5].String();
 	KIterator *it = serv->ssdb->scan(req[1], req[2], limit, load_in_cache, filter);
 	resp->push_back("ok");
 	while(it->next()){

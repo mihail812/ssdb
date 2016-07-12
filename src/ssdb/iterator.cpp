@@ -86,6 +86,7 @@ bool Iterator::next(){
 /* KV */
 
 KIterator::KIterator(Iterator *it, std::string json_filter){
+	try {
 	if (!json_filter.empty()) {
 		jsoncons::json filters = jsoncons::json::parse(json_filter);
 		auto vec = filters.elements();//filters.as_vector<jsoncons::json>();
@@ -96,10 +97,13 @@ KIterator::KIterator(Iterator *it, std::string json_filter){
 			for (jsoncons::json field : vec_fields) {
 				fields[field.get("name").as_string()] = field.get("query").as_string();
 			}
-
 			this->queries[regex].swap(fields);
 		}
 	}
+	} catch (...) {
+		this->queries.clear();
+	}
+
 
 	this->it = it;
 	this->return_val_ = true;
@@ -132,8 +136,9 @@ bool KIterator::next(){
 
 		if(return_val_){
 			if (!queries.empty()) {
+				try {
 				std::string temp(vs.data(), vs.size());
-				const jsoncons::json json_data =jsoncons::json::parse(temp);
+				const jsoncons::json json_data = jsoncons::json::parse(temp);
 				jsoncons::json json_result;
 				for (const auto &query : this->queries) {
 					if (boost::regex_match(this->key, query.first)) {
@@ -143,10 +148,15 @@ bool KIterator::next(){
 						}
 					}
 				}
+				if (json_result.is_empty()) {
+					continue;
+				}
 				this->val = json_result.to_string();
+			} catch (...){}
 			} else {
 				this->val.assign(vs.data(), vs.size());
 			}
+
 		}
 		return true;
 	}
