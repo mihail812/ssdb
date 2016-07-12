@@ -169,7 +169,7 @@ int SSDBImpl::get(const Bytes &key, std::string *val){
 	return 1;
 }
 
-KIterator* SSDBImpl::scan(const Bytes &start, const Bytes &end, uint64_t limit){
+KIterator* SSDBImpl::scan(const Bytes &start, const Bytes &end, uint64_t limit, uint64_t load_in_cache, std::string filter){
 	std::string key_start, key_end;
 	key_start = encode_kv_key(start);
 	if(end.empty()){
@@ -180,7 +180,7 @@ KIterator* SSDBImpl::scan(const Bytes &start, const Bytes &end, uint64_t limit){
 	//dump(key_start.data(), key_start.size(), "scan.start");
 	//dump(key_end.data(), key_end.size(), "scan.end");
 
-	return new KIterator(this->iterator(key_start, key_end, limit));
+	return new KIterator(this->iterator(key_start, key_end, limit, load_in_cache), filter);
 }
 
 KIterator* SSDBImpl::rscan(const Bytes &start, const Bytes &end, uint64_t limit){

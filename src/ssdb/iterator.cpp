@@ -12,6 +12,7 @@ found in the LICENSE file.
 #include "../util/config.h"
 #include "leveldb/iterator.h"
 
+
 Iterator::Iterator(leveldb::Iterator *it,
 		const std::string &end,
 		uint64_t limit,
@@ -84,9 +85,28 @@ bool Iterator::next(){
 
 /* KV */
 
-KIterator::KIterator(Iterator *it){
+KIterator::KIterator(Iterator *it, std::string json_filter){
+	if (!json_filter.empty()) {
+		jsoncons::json filters = jsoncons::json::parse(json_filter);
+		auto vec = filters.elements();//filters.as_vector<jsoncons::json>();
+		for (jsoncons::json elem : vec) {
+			boost::regex regex = boost::regex(elem.get("regex").as_string());
+			auto vec_fields = elem.get("fields").elements();
+			std::map<std::string, std::string> fields;
+			for (jsoncons::json field : vec_fields) {
+				fields[field.get("name").as_string()] = field.get("query").as_string();
+			}
+
+			this->queries[regex].swap(fields);
+		}
+	}
+
 	this->it = it;
 	this->return_val_ = true;
+}
+
+bool KIterator::isFiltered() {
+	return false;
 }
 
 KIterator::~KIterator(){
@@ -109,8 +129,24 @@ bool KIterator::next(){
 		if(decode_kv_key(ks, &this->key) == -1){
 			continue;
 		}
+
 		if(return_val_){
-			this->val.assign(vs.data(), vs.size());
+			if (!queries.empty()) {
+				std::string temp(vs.data(), vs.size());
+				const jsoncons::json json_data =jsoncons::json::parse(temp);
+				jsoncons::json json_result;
+				for (const auto &query : this->queries) {
+					if (boost::regex_match(this->key, query.first)) {
+						for (const auto &field : query.second) {
+							jsoncons::json field_result = jsoncons::jsonpath::json_query(json_data, field.second);
+							json_result.set(field.first, field_result);
+						}
+					}
+				}
+				this->val = json_result.to_string();
+			} else {
+				this->val.assign(vs.data(), vs.size());
+			}
 		}
 		return true;
 	}

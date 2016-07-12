@@ -222,6 +222,24 @@ int proc_scan(NetworkServer *net, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
+int proc_scan_filter(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(6);
+
+	uint64_t limit = req[3].Uint64();
+	uint64_t load_in_cache = req[3].Uint64();
+	std::string filter = req[4].String();
+	KIterator *it = serv->ssdb->scan(req[1], req[2], limit, load_in_cache, filter);
+	resp->push_back("ok");
+	while(it->next()){
+		resp->push_back(it->key);
+		resp->push_back(it->val);
+	}
+	delete it;
+	return 0;
+}
+
+
 int proc_rscan(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
@@ -376,7 +394,7 @@ int proc_bitcount(NetworkServer *net, Link *link, const Request &req, Response *
 	int end = -1;
 	if(req.size() > 3){
 		end = req[3].Int();
-	}
+ 	}
 	std::string val;
 	int ret = serv->ssdb->get(key, &val);
 	if(ret == -1){

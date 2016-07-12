@@ -100,16 +100,16 @@ int SSDBImpl::flushdb(){
 	return ret;
 }
 
-Iterator* SSDBImpl::iterator(const std::string &start, const std::string &end, uint64_t limit){
+Iterator* SSDBImpl::iterator(const std::string &start, const std::string &end, uint64_t limit, uint64_t load_in_cache){
 	leveldb::Iterator *it;
 	leveldb::ReadOptions iterate_options;
-	iterate_options.fill_cache = false;
+	iterate_options.fill_cache = load_in_cache ? true : false;
 	it = ldb->NewIterator(iterate_options);
 	it->Seek(start);
 	if(it->Valid() && it->key() == start){
 		it->Next();
 	}
-	return new Iterator(it, end, limit);
+	return new Iterator(it, end, limit, Iterator::FORWARD);
 }
 
 Iterator* SSDBImpl::rev_iterator(const std::string &start, const std::string &end, uint64_t limit){

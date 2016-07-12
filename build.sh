@@ -2,6 +2,7 @@
 BASE_DIR=`pwd`
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-4.1.0"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.18"
+JSON_PATH="$BASE_DIR/jsoncons"
 SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
 
 # dependency check
@@ -129,15 +130,21 @@ echo "MAKE=$MAKE" >> build_config.mk
 echo "LEVELDB_PATH=$LEVELDB_PATH" >> build_config.mk
 echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> build_config.mk
 echo "SNAPPY_PATH=$SNAPPY_PATH" >> build_config.mk
+echo "JSON_PATH=$JSON_PATH" >> build_config.mk
 
 echo "CFLAGS=" >> build_config.mk
 echo "CFLAGS = -DNDEBUG -D__STDC_FORMAT_MACROS -Wall -O2 -Wno-sign-compare" >> build_config.mk
 echo "CFLAGS += ${PLATFORM_CFLAGS}" >> build_config.mk
 echo "CFLAGS += -I \"$LEVELDB_PATH/include\"" >> build_config.mk
+echo "CFLAGS += -I \"$JSON_PATH\"" >> build_config.mk
+echo "CFLAGS += -std=c++11" >> build_config.mk
 
 echo "CLIBS=" >> build_config.mk
 echo "CLIBS += \"$LEVELDB_PATH/libleveldb.a\"" >> build_config.mk
 echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
+echo "CLIBS += -lboost_regex" >> build_config.mk
+#echo "CLIBS += " >> build_config.mk
+#/usr/lib/x86_64-linux-gnu/
 
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD|OS_ANDROID_CROSSCOMPILE)

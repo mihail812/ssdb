@@ -9,6 +9,11 @@ found in the LICENSE file.
 #include <inttypes.h>
 #include <string>
 #include "../util/bytes.h"
+#include "../../jsoncons/jsoncons_ext/jsonpath/json_query.hpp"
+#include "../../jsoncons/jsoncons/json.hpp"
+#include "../../jsoncons/jsoncons_ext/jsonpath/json_query.hpp"
+#include <map>
+#include <boost/regex.hpp>
 
 namespace leveldb{
 	class Iterator;
@@ -42,11 +47,14 @@ public:
 	std::string key;
 	std::string val;
 
-	KIterator(Iterator *it);
+	KIterator(Iterator *it, std::string json_filter="");
 	~KIterator();
 	void return_val(bool onoff);
 	bool next();
+  	bool isFiltered();
 private:
+  	//regexp -> key/value extract
+  	std::map<boost::regex, std::map<std::string, std::string>> queries;
 	Iterator *it;
 	bool return_val_;
 };

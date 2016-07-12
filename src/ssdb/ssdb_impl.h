@@ -40,7 +40,7 @@ public:
 	virtual int flushdb();
 
 	// return (start, end], not include start
-	virtual Iterator* iterator(const std::string &start, const std::string &end, uint64_t limit);
+	virtual Iterator* iterator(const std::string &start, const std::string &end, uint64_t limit, uint64_t load_in_cache=0);
 	virtual Iterator* rev_iterator(const std::string &start, const std::string &end, uint64_t limit);
 
 	//void flushdb();
@@ -71,7 +71,7 @@ public:
 	virtual int get(const Bytes &key, std::string *val);
 	virtual int getset(const Bytes &key, std::string *val, const Bytes &newval, char log_type=BinlogType::SYNC);
 	// return (start, end]
-	virtual KIterator* scan(const Bytes &start, const Bytes &end, uint64_t limit);
+	virtual KIterator* scan(const Bytes &start, const Bytes &end, uint64_t limit, uint64_t load_in_cache = 0, std::string filter ="");
 	virtual KIterator* rscan(const Bytes &start, const Bytes &end, uint64_t limit);
 
 	/* hash */
