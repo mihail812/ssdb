@@ -101,6 +101,7 @@ KIterator::KIterator(Iterator *it, std::string json_filter){
 		}
 	}
 	} catch (...) {
+        std::cout << "Query error" << json_filter;
 		this->queries.clear();
 	}
 
@@ -137,22 +138,27 @@ bool KIterator::next(){
 		if(return_val_){
 			if (!queries.empty()) {
 				try {
-				std::string temp(vs.data(), vs.size());
-				const jsoncons::json json_data = jsoncons::json::parse(temp);
-				jsoncons::json json_result;
-				for (const auto &query : this->queries) {
-					if (boost::regex_match(this->key, query.first)) {
-						for (const auto &field : query.second) {
-							jsoncons::json field_result = jsoncons::jsonpath::json_query(json_data, field.second);
-							json_result.set(field.first, field_result);
-						}
-					}
-				}
-				if (json_result.is_empty()) {
-					continue;
-				}
-				this->val = json_result.to_string();
-			} catch (...){}
+                  std::string temp(vs.data(), vs.size());
+                  const jsoncons::json json_data = jsoncons::json::parse(temp);
+                  jsoncons::json json_result;
+                  for (const auto &query : this->queries) {
+                      if (boost::regex_match(this->key, query.first)) {
+                          for (const auto &field : query.second) {
+                              jsoncons::json field_result = jsoncons::jsonpath::json_query(json_data, field.second);
+                              if (field_result.size() == 0) {
+                                field_result.assign_null();
+                              } else if (field_result.size() == 1){
+                                field_result = field_result.at(0);
+                              } 
+                              json_result.set(field.first, field_result);
+                          }
+                      }
+                  }
+                  if (json_result.is_empty()) {
+                      continue;
+                  }
+                  this->val = json_result.to_string();
+			    } catch (...){}
 			} else {
 				this->val.assign(vs.data(), vs.size());
 			}
@@ -213,7 +219,7 @@ ZIterator::ZIterator(Iterator *it, const Bytes &name){
 ZIterator::~ZIterator(){
 	delete it;
 }
-		
+
 bool ZIterator::skip(uint64_t offset){
 	while(offset-- > 0){
 		if(this->next() == false){
